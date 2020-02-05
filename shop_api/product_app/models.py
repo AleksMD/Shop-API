@@ -20,6 +20,11 @@ class Product(models.Model):
     class Meta:
         ordering = ['name', 'price']
 
+    def natural_key(self):
+        return (self.name,) + self.shop.natural_key()
+
+    natural_key.dependencies = ['shop_app.shop']
+
     def __str__(self):
         return (f'Product: name={self.name}, '
                 f'price={self.price}, shop={self.shop}')

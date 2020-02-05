@@ -9,5 +9,8 @@ class Shop(models.Model):
     class Meta:
         ordering = ['name']
 
+    def natural_key(self):
+        return (self.name, self.city)
+
     def __str__(self):
         return f'Shop: name={self.name}, city={self.city}'
