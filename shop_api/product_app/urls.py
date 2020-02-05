@@ -3,7 +3,10 @@ from product_app.views import (create_new_product_in_db,
                                get_list_of_all_products,
                                update_existing_product,
                                delete_product_from_db,
-                               get_particular_product)
+                               get_particular_product,
+                               exact_search_for_product,
+                               approximate_product_search,
+                               product_search_by_shop)
 
 
 urlpatterns = [path('product-list/',
@@ -20,4 +23,12 @@ urlpatterns = [path('product-list/',
                     name='update_product'),
                path('delete-product/<int:pk>',
                     delete_product_from_db,
-                    name='delete_product')]
+                    name='delete_product'),
+               path('exact-search/',
+                    exact_search_for_product,
+                    name='exact_search'),
+               path('approximate-search/',
+                    approximate_product_search,
+                    name='approximate_search'),
+               path('search-by-shop/', product_search_by_shop,
+                    name='search_by_shop')]
