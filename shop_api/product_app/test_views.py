@@ -197,3 +197,33 @@ class TestProductViews(TestCase):
         data_to_compare = response.json()
         self.assertEqual(len(data_to_compare), 1)
         self.assertEqual([data_to_compare[0]['fields']], control_result)
+
+    @tag('search_prod_by_price_pos')
+    def test_search_product_by_price_range_pos(self):
+        search_params = {'from': 30, 'to': 60}
+        self.query_str.update(search_params)
+        query_str = '?' + self.query_str.urlencode()
+        response = self.client.get(reverse('search_by_price') + query_str)
+        self.assertEqual(response.status_code, 200)
+        data_to_compare = response.json()
+        self.assertEqual(len(data_to_compare), 2)
+        prod_1 = data_to_compare[0]['fields']
+        prod_2 = data_to_compare[1]['fields']
+        self.assertEqual(prod_1, self.products[1])
+        self.assertEqual(prod_2, self.products[2])
+
+    @tag('search_prod_by_price_neg')
+    def test_search_product_by_price_range_negat(self):
+        search_params = {'from': 130, 'to': 160}
+        self.query_str.update(search_params)
+        query_str = '?' + self.query_str.urlencode()
+        response = self.client.get(reverse('search_by_price') + query_str)
+        self.assertEqual(response.status_code, 404)
+
+    @tag('search_prod_by_price_wr_typ')
+    def test_search_product_by_price_wrong_type(self):
+        search_params = {'from': 130, 'to': 'test'}
+        self.query_str.update(search_params)
+        query_str = '?' + self.query_str.urlencode()
+        response = self.client.get(reverse('search_by_price') + query_str)
+        self.assertEqual(response.status_code, 400)

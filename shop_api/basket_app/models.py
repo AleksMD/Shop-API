@@ -4,12 +4,12 @@ from django.contrib.auth.models import User
 
 class Basket(models.Model):
 
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    owner = models.ForeignKey(User, on_delete=models.CASCADE)
     active = models.BooleanField(default=True)
 
     class Meta:
-        ordering = ['user']
+        ordering = ['owner']
 
     def __str__(self):
-        name = self.user.get_full_name()
+        name = self.owner.get_full_name()
         return f'Basket of customer: {name}'

@@ -6,7 +6,8 @@ from product_app.views import (create_new_product_in_db,
                                get_particular_product,
                                exact_search_for_product,
                                approximate_product_search,
-                               product_search_by_shop)
+                               product_search_by_shop,
+                               product_search_by_price_range)
 
 
 urlpatterns = [path('product-list/',
@@ -31,4 +32,7 @@ urlpatterns = [path('product-list/',
                     approximate_product_search,
                     name='approximate_search'),
                path('search-by-shop/', product_search_by_shop,
-                    name='search_by_shop')]
+                    name='search_by_shop'),
+               path('search-by-price/',
+                    product_search_by_price_range,
+                    name='search_by_price')]
