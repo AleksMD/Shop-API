@@ -8,7 +8,7 @@ from product_app.models import Product
 class TestBasketModel(TestCase):
 
     def setUp(self):
-        self.user = User.objects.create(username='ac_dc',
+        self.owner = User.objects.create(username='ac_dc',
                                         first_name='Alice',
                                         last_name='Cooper',
                                         email='alcp@gmail.com')
@@ -26,11 +26,11 @@ class TestBasketModel(TestCase):
 
     @tag('create_empty_basket')
     def test_create_empty_basket_valid(self):
-        Basket.objects.create(user=self.user)
+        Basket.objects.create(owner=self.owner)
         basket = Basket.objects.all()
         self.assertEqual(len(basket), 1)
-        self.assertEqual(basket[0].user, self.user)
-        self.assertEqual(basket[0].user.username, self.user.username)
+        self.assertEqual(basket[0].owner, self.owner)
+        self.assertEqual(basket[0].owner.username, self.owner.username)
 
     @tag('create_invalid_basket')
     def test_create_empty_basket_invalid(self):
@@ -39,7 +39,7 @@ class TestBasketModel(TestCase):
 
     @tag('product_to_from_basket')
     def test_add_remove_product_to_basket(self):
-        Basket.objects.create(user=self.user)
+        Basket.objects.create(owner=self.owner)
         basket = Basket.objects.first()
         basket.product_set.add(self.product_1)
         basket.product_set.add(self.product_2)
@@ -57,8 +57,8 @@ class TestBasketModel(TestCase):
 
     @tag('create_several_baskets')
     def test_user_creates_several_basket(self):
-        Basket.objects.create(user=self.user)
-        Basket.objects.create(user=self.user)
-        self.assertEqual(len(self.user.basket_set.all()), 2)
-        baskets = Basket.objects.filter(user=self.user).all()
+        Basket.objects.create(owner=self.owner)
+        Basket.objects.create(owner=self.owner)
+        self.assertEqual(len(self.owner.basket_set.all()), 2)
+        baskets = Basket.objects.filter(owner=self.owner).all()
         self.assertEqual(len(baskets), 2)

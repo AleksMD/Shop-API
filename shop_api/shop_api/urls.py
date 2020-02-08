@@ -22,5 +22,6 @@ urlpatterns = [
     path('healthcheck/', healthcheck, name='healthcheck'),
     path('products/', include('product_app.urls')),
     path('baskets/', include('basket_app.urls')),
+    path('shops/', include('shop_app.urls')),
     path('', index, name='index')
 ]

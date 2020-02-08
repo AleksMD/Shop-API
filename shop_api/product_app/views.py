@@ -67,7 +67,7 @@ def create_new_product_in_db(request):
 
 @login_required
 @permission_required(['product_app.change_product'])
-@require_http_methods(['PUT'])
+@require_http_methods(['PUT', 'PATCH'])
 def update_existing_product(request, pk=None):
     """ Updates information about existing product
     Require admin's permissions.

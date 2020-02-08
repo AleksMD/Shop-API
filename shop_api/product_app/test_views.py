@@ -117,6 +117,7 @@ class TestProductViews(TestCase):
                                    content_type='application/json')
         self.assertEqual(response.status_code, 302)
         product = Product.objects.filter(pk=2).first()
+        self.assertIsNotNone(product)
         self.assertFalse(product.available)
         self.assertEqual(product.price,
                          Decimal('32.50').quantize(Decimal('1.00')))
