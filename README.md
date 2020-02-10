@@ -1,6 +1,7 @@
 # Shop API
-TODO
-**Description**
+Shop REST API is a study project. It was built with raw Django framework and
+PostgreSQL as a database. All views are made via functions. It was done
+deliberately in order to estimate pros and cons of this approach. 
 ## Getting Started
 Please follow the instructions bellow in order to successfully run the API.
 
@@ -29,7 +30,8 @@ Clone this repo onto your local machine by the following command:
 git clone https://github.com/AleksMD/shop_api.git
 
 ```
-N.B. Database in postgres should be created before you start running the application.
+
+N.B. When running program on local machine database in postgres should be created before you start running the application.
 To do so, open postgres db in terminal by this command:
 
 ```
@@ -57,6 +59,11 @@ GRANT ALL PRIVILEGES ON DATABASE name_of_your_app_database TO your_user_name;
 
 After database was created update DATABASE section in settings.py
 ### Info
+You can run app in docker container whether on local machine or VM. Use following
+command in terminal:
+```
+docker-compose up
+```
 
 
 ## Start API
@@ -78,12 +85,85 @@ If the start of this app is succussfull you can open an internet browser and go 
 http://127.0.0.1:8000/ 
 
 ```
-If there are no errors it means that everything works fine.
+If there are no errors and you see some welcome message, it means that everything works fine.
 
-See next section to understand how you run tests.
 ## API Endpoints
+*You can user either desktop(Postman, Insomnia etc.) or console(curl, http
+etc.) tools for accessing API*
+> Sign Up:
+```
+curl -X POST -d "{\"username\": \"<your_username\">, \"email\": \"<your_email>"\, \"password\":\"<your_password>\"}" -H "Content-Type: application/json" \
+  http://localhost:8000/signup/
+```
+> Log In:
+```
+curl -X POST -d "{\"username\": \"<your_username\">, \"password\":\"<your_password>\"}" -H "Content-Type: application/json" \
+  http://localhost:8000/login/
+```
+*After previous step you will receive csrftoken and sessionid in cookies. To be
+able to get access to all resources you should append it to each requests
+header(For instance: -H "Set-Cookie: csrftoken=... sessionid=...")* 
 
-> 
+> Get lists of all products:
+```
+http://localhost:8000/products/product-list/
+```
+ 
+> Get particular product:
+```
+http://localhost:8000/products/detail-product/<product_pk>
+```
+> Add new product(requires admin permissions):
+```
+http://localhost:8000/products/create_product/
+```
+> Update info about existing product:
+```
+http://localhost:8000/products/update_product/<product_id>
+```
+> Delete product:
+```
+http://localhost:8000/products/delete-product/<product_id>
+```
+> Search product with full match:
+```
+http://localhost:8000/products/exact-search
+```
+> Search product with particular match:
+```
+http://localhost:8000/products/approximate-search/
+```
+> Search by shop:
+```
+http://localhost:8000/products/search-by-shop/
+```
+> Search by price range(two fields: 'from', 'to'):
+```
+http://localhost:8000/products/search-by-price/
+```
+> Add product to customer's basket:
+```
+http://localhost:8000/products/add-product-to-basket/<prod_id>
+```
+> Show active(is not paid yet) basket of current user:
+```
+http://localhost:8000/baskets/view-active-basket
+```
+> Show total price of products in basket
+
+```
+http://localhost:8000/baskets/view-total-basket-price
+```
+> Show all baskets (active and not) of current user:
+```
+http://localhost:8000/baskets/user-basket-list
+```
+> Pay for basket.
+> N.B. This API doesn't use any real payment gateway like(Stripe, PayPal etc.)
+> it just emulates process of payment. Client sends json in a look like {'money': <sum_of_money>}
+```
+http://localhost:8000/baskets/pay-for-basket/
+```
 
 ## Testing
 There  lots of test cases for this application.
@@ -115,7 +195,7 @@ python manage.py test --tag=<tag_name>
 * [Python3.7](https://www.python.org) - The programming language of the app
 * [Django REST framework](https://www.django-rest-framework.org/) - The web framework used
 * [PostgresSQL](https://rometools.github.io/rome/) - The relational database used
-
+* [Docker](https://www.docker.com/) - The building environment used
 ## Versioning
 
 Version 0.0.1
