@@ -1,3 +1,4 @@
+from django.views.decorators.csrf import csrf_exempt
 import json
 from django.contrib.auth.decorators import login_required, permission_required
 from django.views.decorators.http import require_http_methods
@@ -6,7 +7,7 @@ from django.http import HttpResponse
 from http import HTTPStatus
 from product_app.models import Product
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
-from django.db.models import Q
+from django.db.models import Q, Max
 
 
 @require_http_methods(['GET'])
@@ -50,7 +51,8 @@ def get_particular_product(request, pk=None):
     return HttpResponse(status=HTTPStatus.NOT_FOUND)
 
 
-@login_required
+@csrf_exempt
+@login_required(login_url='/login/')
 @permission_required(['product_app.add_product'])
 @require_http_methods(['POST'])
 def create_new_product_in_db(request):
@@ -59,13 +61,17 @@ def create_new_product_in_db(request):
     Returns custom message and 201 status
     """
     data = json.loads(request.body.decode(encoding='utf-8'))
-    Product.objects.create(**data)
-    content = (f"Product: name={data['name']}, "
-               f"price={data['price']} was created.")
-    return HttpResponse(content, status=HTTPStatus.CREATED)
+    try:
+        Product.objects.create(**data)
+        content = (f"Product: name={data['name']}, "
+                   f"price={data['price']} was created.")
+        return HttpResponse(content, status=HTTPStatus.CREATED)
+    except ValidationError:
+        message = 'You have provided invalid data for new product.'
+        return HttpResponse(message, status=HTTPStatus.BAD_REQUEST)
 
 
-@login_required
+@login_required(login_url='/login/')
 @permission_required(['product_app.change_product'])
 @require_http_methods(['PUT', 'PATCH'])
 def update_existing_product(request, pk=None):
@@ -100,7 +106,7 @@ def update_existing_product(request, pk=None):
     return HttpResponse(status=HTTPStatus.NOT_FOUND)
 
 
-@login_required
+@login_required(login_url='/login/')
 @permission_required(['product_app.delete_product'])
 @require_http_methods(['DELETE'])
 def delete_product_from_db(request, pk=None):
@@ -137,7 +143,7 @@ def exact_search_for_product(request):
     it returns BAD_REQUEST or NOT_FOUND
 
     """
-    data = request.GET.dict()
+    data = json.loads(request.body.decode(encoding='utf-8'))
     try:
         products = Product.objects.filter(**data).all()
     except ValidationError:
@@ -164,7 +170,8 @@ def approximate_product_search(request):
         if client requests for {"name": "car"} it returns all db items
         that contains this part of word (carrot, car, cartoon etc.)
     """
-    data = request.GET.dict()
+
+    data = json.loads(request.body.decode(encoding='utf-8'))
     # adding __icontains is equal caseinsensitive SQL method LIKE
     data = {k + '__icontains': v for k, v in data.items()}
     products = Product.objects.filter(**data).all()
@@ -189,7 +196,7 @@ def product_search_by_shop(request):
     the main difference between this and mentioned above is a way of modifying
     filtername due to shop is relational object to product.
     """
-    data = request.GET.dict()
+    data = json.loads(request.body.decode(encoding='utf-8'))
     data = {'shop__' + k + '__icontains': v for k, v in data.items()}
     products = Product.objects.filter(**data).all()
     if len(products) > 0:
@@ -216,9 +223,13 @@ def product_search_by_price_range(request):
     djanto ORM queries.
 
     """
-    data = request.GET.dict()
+    data = json.loads(request.body.decode(encoding='utf-8'))
     start_from = data.get('from', 0)
-    end_to = data.get('to', None)
+    # The following code block retrieve max price from DB if the latter was not
+    # provided by the user
+    end_to = data.get('to',
+                      Product.objects.all().aggregate(
+                          Max('price'))['price__max'])
     try:
         products = Product.objects.filter(
             Q(price__gte=start_from) & Q(price__lte=end_to)

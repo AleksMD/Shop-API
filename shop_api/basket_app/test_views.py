@@ -4,13 +4,16 @@ from django.test import TestCase, tag, Client
 from basket_app.models import Basket, Discount
 from django.contrib.auth.models import User, Permission
 from product_app.models import Product
-from django.http import QueryDict
 from django.urls import reverse
+from django.conf import settings
 
 
 class TestBasketViews(TestCase):
 
+    fixtures = settings.FIXTURES
+
     def setUp(self):
+
         self.user = User.objects.create_user(username='test_user',
                                              first_name='test_first_name',
                                              last_name='test_last_name',
@@ -25,19 +28,7 @@ class TestBasketViews(TestCase):
         self.client = Client()
         self.basket = Basket.objects.create(owner=self.user)
         self.user_discount = Discount.objects.create(user=self.user)
-
-        # Creating product samples in database
-        prod_field_name = ('name', 'price',
-                           'description', 'category',
-                           'shop', 'available')
-        prod_set = [('apple', '12.40', 'green', 'fruits', None, True),
-                    ('carrot', '32.50', 'orange', 'vegetables', None, False),
-                    ('ball', '51.00', 'red', 'toys', None, False)]
-        self.products = [dict(zip(prod_field_name, item)) for item in prod_set]
-        for product in self.products:
-            Product.objects.create(**product)
         self.product_set = Product.objects.all()
-        self.query_str = QueryDict(mutable=True)
 
     @tag('user_add_prod_to_basket')
     def test_user_add_product_to_basket(self):
@@ -187,4 +178,3 @@ class TestBasketViews(TestCase):
                   "Would you like to buy something else?"
         content = str(response.content, encoding='utf-8')
         self.assertInHTML(message, content)
-

@@ -6,10 +6,10 @@ from django.core import serializers
 from django.http import HttpResponse
 from http import HTTPStatus
 from basket_app.models import Basket
-from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db.models import Sum
 from product_app.models import Product
 from shop_api.utils import DecimalJSONEncoder
+from django.views.decorators.csrf import csrf_exempt
 
 
 @login_required
@@ -17,9 +17,16 @@ from shop_api.utils import DecimalJSONEncoder
 @require_http_methods(['GET'])
 def get_list_of_all_user_baskets(request):
     """Returns list of all products from basket of particular user."""
-    user = request.user
-    baskets = Basket.objects.filter(user__pk=user).all()
-    data_to_return = serializers.serialize('json', baskets)
+    owner = request.user
+    baskets = Basket.objects.filter(owner__pk=owner).all()
+    basket_set = [(basket, basket.product_set.all())
+                  for basket in baskets]
+    data_to_return = []
+    for item in basket_set:
+        data_to_return.append(
+            serializers.serialize('json',
+                                  baskets,
+                                  use_natural_foreign_keys=True))
     return HttpResponse(data_to_return,
                         status=HTTPStatus.OK, content_type='application/json')
 
@@ -75,7 +82,10 @@ def view_total_basket_price(request):
     """Returns user's basket with products that have not been paid yet.
 
     """
-    discount = request.user.discount.discount_percent
+    discount = 0
+    if hasattr(request.user, 'discount'):
+        discount = request.user.discount.discount_percent
+
     active_basket = request.user.basket_set.filter(active=True).first()
     if not active_basket or len(active_basket.product_set.all()) == 0:
         return HttpResponse('Your basket is empty',
@@ -90,13 +100,14 @@ def view_total_basket_price(request):
     total_cost = json.dumps(active_basket.product_set.aggregate(
                             total=(Sum('price') - Sum('price') * discount)),
                             cls=DecimalJSONEncoder)
-    response = {'product_list': product_list,
-                'total_cost': total_cost}
+    response = [{"product_list": product_list,
+                "total_cost": total_cost}]
     return HttpResponse(json.dumps(response),
                         status=HTTPStatus.OK,
                         content_type='application/json')
 
 
+@csrf_exempt
 @login_required
 @permission_required(('basket_app.change_basket',))
 @require_http_methods(['POST'])
@@ -106,7 +117,10 @@ def user_payment_view(request):
     if money == total cost it returns OK
     if money < total cost it returns BAD_REQUEST
     """
-    discount = request.user.discount.discount_percent
+    discount = 0
+    if hasattr(request.user, 'discount'):
+        discount = request.user.discount.discount_percent
+
     active_basket = request.user.basket_set.filter(active=True).first()
     money = json.loads(str(request.body, encoding='utf-8'))['money']
     total_cost = active_basket.product_set.aggregate(

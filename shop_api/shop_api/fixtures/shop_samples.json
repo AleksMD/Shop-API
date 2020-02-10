@@ -1,0 +1,29 @@
+[
+    {
+        "model": "shop_app.shop",
+        "pk": 1,
+        "fields":{
+            "name": "Walmart",
+            "city": "Paris",
+            "owner": "Tony Stark"
+        }
+    }, 
+    {
+        "model": "shop_app.shop",
+        "pk": 2,
+        "fields":{
+            "name": "Apricot",
+            "city": "London",
+            "owner": "Monty Python"
+        }
+    },
+{
+        "model": "shop_app.shop",
+        "pk": 3,
+        "fields":{
+            "name": "Grocery",
+            "city": "New York", 
+            "owner": "Raymond Hettinger"
+        }
+    }
+]

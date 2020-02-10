@@ -11,7 +11,10 @@ class Product(models.Model):
     category = models.CharField(max_length=255)
     image = models.ImageField()
     description = models.TextField()
-    shop = models.OneToOneField(Shop, null=True, on_delete=models.CASCADE)
+    shop = models.ForeignKey(Shop,
+                             unique=False,
+                             null=True,
+                             on_delete=models.CASCADE)
     basket = models.ForeignKey(Basket,
                                blank=True,
                                null=True,

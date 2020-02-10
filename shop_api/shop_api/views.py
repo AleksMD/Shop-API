@@ -1,5 +1,11 @@
+import json
+from django.core.exceptions import ValidationError
 from django.http import HttpResponse
 from http import HTTPStatus
+from django.views.decorators.http import require_http_methods
+from django.contrib.auth.models import User
+from django.views.decorators.csrf import csrf_exempt
+from django.contrib.auth import authenticate, login
 
 
 def healthcheck(request):
@@ -10,3 +16,31 @@ def healthcheck(request):
 def index(request):
     index_page_emulation = '<h2>Welcome To Shop API</h2>'
     return HttpResponse(index_page_emulation, status=HTTPStatus.OK)
+
+
+@csrf_exempt
+@require_http_methods(['POST'])
+def signup_page(request):
+    data = json.loads(request.body.decode(encoding='utf-8'))
+    try:
+        User.objects.create_user(**data)
+        message = 'You have been successfully signed up!'
+        return HttpResponse(message, status=HTTPStatus.CREATED)
+    except ValidationError:
+        message = 'You have provided invalid data for sign up.'
+        return HttpResponse(message, status=HTTPStatus.BAD_REQUEST)
+
+
+@csrf_exempt
+@require_http_methods(['POST'])
+def login_page(request):
+    data = json.loads(request.body.decode(encoding='utf-8'))
+    username = data.get('username')
+    password = data.get('password')
+    user = authenticate(username=username, password=password)
+    if user:
+        login(request, user)
+        message = 'You have successfully logged in'
+        return HttpResponse(message, status=HTTPStatus.OK)
+    return HttpResponse('Incorrect login/password!',
+                        status=HTTPStatus.BAD_REQUEST)

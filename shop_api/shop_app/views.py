@@ -8,7 +8,7 @@ from shop_app.models import Shop
 from django.core.exceptions import ValidationError, ObjectDoesNotExist
 
 
-@login_required
+@login_required(login_url='/login/')
 @permission_required(('shop_app.add_shop',))
 @require_http_methods(['POST'])
 def add_new_shop_view(request):
@@ -25,7 +25,7 @@ def add_new_shop_view(request):
     return HttpResponse(message, status=HTTPStatus.CREATED)
 
 
-@login_required
+@login_required(login_url='/login/')
 @permission_required(('shop_app.change_shop',))
 @require_http_methods(['PUT', 'PATCH'])
 def change_existing_shop_view(request, shop_pk=None):

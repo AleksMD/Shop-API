@@ -1,0 +1,38 @@
+[
+    {
+        "model": "product_app.product",
+        "pk": 1,
+        "fields":{
+            "name": "apple",
+            "price": 12.40,
+            "description": "green",
+            "category": "fruits",
+            "shop": 1,
+            "available": true 
+        }
+    }, 
+    {
+        "model": "product_app.product",
+        "pk": 2,
+        "fields":{
+            "name": "carrot",
+            "price": 32.50,
+            "description": "orange",
+            "category": "vegetables",
+            "shop": 2,
+            "available": true 
+        }
+    },
+{
+        "model": "product_app.product",
+        "pk": 3,
+        "fields":{
+            "name": "ball",
+            "price": 51,
+            "description": "red",
+            "category": "toys",
+            "shop": 3,
+            "available": true
+        }
+    }
+]

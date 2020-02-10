@@ -3,9 +3,14 @@ from django.contrib.auth.models import User
 from shop_app.models import Shop
 from django.http import QueryDict
 from django.urls import reverse
+from django.conf import settings
+from django.core import serializers
+import json
 
 
 class TestShopViews(TestCase):
+
+    fixtures = settings.FIXTURES
 
     def setUp(self):
         self.client = Client()
@@ -15,14 +20,11 @@ class TestShopViews(TestCase):
             last_name='admin_last_name',
             email='admin@gmail.com',
             password='admin_password')
-        # Creating shop samples in database
-        shop_field_name = ('name', 'city', 'owner')
-        shop_set = [('Jewelery', 'Paris', 'Monty Python'),
-                    ('Apricot', 'London', 'Eric Idle'),
-                    ('Grocery', 'New York', 'Raymond Hettinger')]
-        self.shops = [dict(zip(shop_field_name, item)) for item in shop_set]
-        for shop in self.shops:
-            Shop.objects.create(**shop)
+        self.shops = serializers.serialize('json',
+                                           Shop.objects.all(),
+                                           fields=['name', 'city', 'owner'],
+                                           use_natural_foreign_keys=True)
+        self.shops = json.loads(self.shops)
         self.query_str = QueryDict(mutable=True)
 
     @tag('admin_add_new_shop')
@@ -62,9 +64,12 @@ class TestShopViews(TestCase):
                                            kwargs={'shop_pk': 2}))
         self.assertEqual(response.status_code, 200)
         data_to_compare = response.json()[0]['fields']
-        self.assertEqual(data_to_compare['name'], self.shops[1]['name'])
-        self.assertEqual(data_to_compare['owner'], self.shops[1]['owner'])
-        self.assertEqual(data_to_compare['city'], self.shops[1]['city'])
+        self.assertEqual(data_to_compare['name'],
+                         self.shops[0]['fields']['name'])
+        self.assertEqual(data_to_compare['owner'],
+                         self.shops[0]['fields']['owner'])
+        self.assertEqual(data_to_compare['city'],
+                         self.shops[0]['fields']['city'])
 
     @tag('show_shops_list')
     def test_get_list_of_all_shops(self):
@@ -72,6 +77,6 @@ class TestShopViews(TestCase):
         self.assertEqual(response.status_code, 200)
         data_to_compare = [shop['fields'] for shop in response.json()]
         # returned data ordered by name
-        self.assertEqual(data_to_compare[0], self.shops[1])
-        self.assertEqual(data_to_compare[1], self.shops[2])
-        self.assertEqual(data_to_compare[2], self.shops[0])
+        self.assertEqual(data_to_compare[0], self.shops[0]['fields'])
+        self.assertEqual(data_to_compare[1], self.shops[1]['fields'])
+        self.assertEqual(data_to_compare[2], self.shops[2]['fields'])

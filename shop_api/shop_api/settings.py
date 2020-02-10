@@ -24,7 +24,7 @@ SECRET_KEY = '9l^s!vm#*7%f%+ubvllhopo&o+j&_i4nj*t_w^7#5f0@+$too^'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
-
+LOGIN_URL = '/login/'
 ALLOWED_HOSTS = []
 
 
@@ -79,16 +79,16 @@ WSGI_APPLICATION = 'shop_api.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'shop_api',
-        'HOST': 'localhost',
+        'NAME': 'shop_api_db',
+        'HOST': 'db',
         'PORT': 5432,
         'USER': 'shop_admin',
         'PASSWORD': 'admin_password',
         'TEST': {
-                 'NAME': 'test_shop_api',
-                 'HOST': 'localhost',
+                 'NAME': 'shop_api_test_db',
+                 'HOST': 'db',
                  'PORT': 5432,
-                 'USER': 'test_shop_admin'
+                 'USER': 'shop_admin'
         }
     }
 }
@@ -131,3 +131,5 @@ USE_TZ = False
 # https://docs.djangoproject.com/en/3.0/howto/static-files/
 
 STATIC_URL = '/static/'
+FIXTURE_DIRS = [os.path.join(BASE_DIR, 'shop_api', 'fixtures')]
+FIXTURES = ['product_samples.json', 'shop_samples.json']

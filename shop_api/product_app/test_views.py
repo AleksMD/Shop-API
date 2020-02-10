@@ -1,16 +1,18 @@
 from django.test import TestCase, Client, tag
 from django.urls import reverse
 from product_app.models import Product
-from shop_app.models import Shop
 from django.contrib.auth.models import User
 from decimal import Decimal
 from django.core.exceptions import ObjectDoesNotExist
 from django.http import QueryDict
 from django.core import serializers
 import json
+from django.conf import settings
 
 
 class TestProductViews(TestCase):
+
+    fixtures = settings.FIXTURES
 
     def setUp(self):
         self.customer = User.objects.create_user('cusomer_username',
@@ -19,18 +21,15 @@ class TestProductViews(TestCase):
         self.admin = User.objects.create_superuser('admin',
                                                    email='admin@gmail.com',
                                                    password='admin_password')
-        self.shop = Shop.objects.create(name='Grocery', city='Washington',
-                                        owner='Michael Stone')
         self.client = Client()
-        prod_field_name = ('name', 'price',
-                           'description', 'category',
-                           'shop', 'available')
-        prod_set = [('apple', '12.40', 'green', 'fruits', None, False),
-                    ('carrot', '32.50', 'orange', 'vegetables', None, False),
-                    ('ball', '51.00', 'red', 'toys', None, False)]
-        self.products = [dict(zip(prod_field_name, item)) for item in prod_set]
-        for product in self.products:
-            Product.objects.create(**product)
+        self.products = serializers.serialize('json',
+                                              Product.objects.all(),
+                                              fields=['name', 'price',
+                                                      'description',
+                                                      'category',
+                                                      'shop', 'available'],
+                                              use_natural_foreign_keys=True)
+        self.products = json.loads(self.products)
         self.query_str = QueryDict(mutable=True)
 
     @tag('product_list')
@@ -39,7 +38,8 @@ class TestProductViews(TestCase):
         self.assertEqual(response.status_code, 200)
         data_to_compare = response.json()
         self.assertEqual(len(data_to_compare), 3)
-        self.assertEqual(data_to_compare[0]['fields'], self.products[0])
+        self.assertEqual(data_to_compare[0]['fields'],
+                         self.products[0]['fields'])
 
     @tag('detail_product')
     def test_get_detail_product(self):
@@ -47,7 +47,8 @@ class TestProductViews(TestCase):
         self.assertEqual(response.status_code, 200)
         data_to_compare = response.json()
         self.assertEqual(len(data_to_compare), 1)
-        self.assertEqual(data_to_compare[0]['fields'], self.products[1])
+        self.assertEqual(data_to_compare[0]['fields'],
+                         self.products[2]['fields'])
 
     @tag('create_product_auth')
     def test_create_new_product_by_admin(self):
@@ -102,7 +103,7 @@ class TestProductViews(TestCase):
                                    content_type='application/json')
         self.assertEqual(response.status_code, 400)
         product = Product.objects.filter(pk=2).first()
-        self.assertFalse(product.available)
+        self.assertTrue(product.available)
         self.assertEqual(product.price,
                          Decimal('32.50').quantize(Decimal('1.00')))
 
@@ -118,7 +119,7 @@ class TestProductViews(TestCase):
         self.assertEqual(response.status_code, 302)
         product = Product.objects.filter(pk=2).first()
         self.assertIsNotNone(product)
-        self.assertFalse(product.available)
+        self.assertTrue(product.available)
         self.assertEqual(product.price,
                          Decimal('32.50').quantize(Decimal('1.00')))
 
@@ -163,7 +164,8 @@ class TestProductViews(TestCase):
         self.assertEqual(response.status_code, 200)
         data_to_compare = response.json()
         self.assertEqual(len(data_to_compare), 1)
-        self.assertEqual(data_to_compare[0]['fields'], self.products[1])
+        self.assertEqual(data_to_compare[0]['fields'],
+                         self.products[2]['fields'])
 
     @tag('approx_prod_search')
     def test_approximate_product_search(self):
@@ -175,21 +177,11 @@ class TestProductViews(TestCase):
         self.assertEqual(response.status_code, 200)
         data_to_compare = response.json()
         self.assertEqual(len(data_to_compare), 1)
-        self.assertEqual(data_to_compare[0]['fields'], self.products[1])
+        self.assertEqual(data_to_compare[0]['fields'],
+                         self.products[2]['fields'])
 
     @tag('search_prod_by_shop')
     def test_search_product_by_shop(self):
-        product = Product.objects.filter(name='apple').first()
-        product.shop = self.shop
-        product.save()
-        temp_obj = serializers.serialize('json', [product],
-                                         fields=['name', 'price',
-                                                 'description', 'category',
-                                                 'shop', 'available'],
-                                         indent=2,
-                                         use_natural_foreign_keys=True)
-        temp_obj = json.loads(temp_obj)
-        control_result = [item['fields'] for item in temp_obj]
         search_params = {'name': 'Grocery'}
         self.query_str.update(search_params)
         query_str = '?' + self.query_str.urlencode()
@@ -197,7 +189,8 @@ class TestProductViews(TestCase):
         self.assertEqual(response.status_code, 200)
         data_to_compare = response.json()
         self.assertEqual(len(data_to_compare), 1)
-        self.assertEqual([data_to_compare[0]['fields']], control_result)
+        self.assertEqual(data_to_compare[0]['fields'],
+                         self.products[1]['fields'])
 
     @tag('search_prod_by_price_pos')
     def test_search_product_by_price_range_pos(self):
@@ -210,8 +203,8 @@ class TestProductViews(TestCase):
         self.assertEqual(len(data_to_compare), 2)
         prod_1 = data_to_compare[0]['fields']
         prod_2 = data_to_compare[1]['fields']
-        self.assertEqual(prod_1, self.products[1])
-        self.assertEqual(prod_2, self.products[2])
+        self.assertEqual(prod_1, self.products[2]['fields'])
+        self.assertEqual(prod_2, self.products[1]['fields'])
 
     @tag('search_prod_by_price_neg')
     def test_search_product_by_price_range_negat(self):
