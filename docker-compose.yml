@@ -22,6 +22,7 @@ services:
           - 8000:8000
         command: bash -c "sleep 5 && python manage.py makemigrations 
                  && python manage.py migrate 
+                 && python manage.py loaddata super_user.json
                  && python manage.py loaddata shop_samples.json 
                  && python manage.py loaddata product_samples.json
                  && python manage.py runserver 0.0.0.0:8000"

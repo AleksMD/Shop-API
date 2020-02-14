@@ -64,8 +64,13 @@ command in terminal:
 ```
 docker-compose up
 ```
-
-
+> N.B. Docker compose file include several bash commands that load predefined
+> data to the db, including fixtures, thus the first superuser in database has
+> following credentials:
+```
+username: 'admin'
+password: 'admin_password'
+```
 ## Start API
 To start the app activate virtual environment by the following command:
 
@@ -88,9 +93,18 @@ http://127.0.0.1:8000/
 If there are no errors and you see some welcome message, it means that everything works fine.
 
 ## API Endpoints
-*You can user either desktop(Postman, Insomnia etc.) or console(curl, http
+*You can use either desktop(Postman, Insomnia etc.) or console(curl, http
 etc.) tools for accessing API*
-> Sign Up:
+> Sign Up. It creates ordinary user without any special permission. To be able
+> to update/create/delete either shops or products you have to create superuser
+> prime to start app. Use the following command in terminal:
+```
+python manage.py createsuperuser
+```
+and provide app with neccessary data according to the quesions in command
+prompt.
+Now you are ready to use all functionality of the Shop Api
+
 ```
 curl -X POST -d "{\"username\": \"<your_username\">, \"email\": \"<your_email>"\, \"password\":\"<your_password>\"}" -H "Content-Type: application/json" \
   http://localhost:8000/signup/
