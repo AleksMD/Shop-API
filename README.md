@@ -121,9 +121,11 @@ following pictures illustrates how it looks like in REST Clien Insomnia:*
 > The first one is a header section. It should be included in each request 
 > if the latter requires login permission
 ![image](insomnia_header.png)
+>
 > The next one is how the header settings look like inside. It takes cookies from response 
 > after login page has been requested.
 ![image](insomnia_detail.png)
+>
 > Get lists of all products:
 ```
 http://localhost:8000/products/product-list/
