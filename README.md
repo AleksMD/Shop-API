@@ -118,8 +118,8 @@ curl -X POST -d "{\"username\": \"<your_username\">, \"password\":\"<your_passwo
 able to get access to all resources you should append it to each requests
 header(For instance: -H "Set-Cookie: csrftoken=... sessionid=..."). The
 following pictures illustrates how it looks like in REST Clien Insomnia:* 
-[image](insomnia_header.png)
-[image](insomnia_detail.png)
+![image](insomnia_header.png)
+![image](insomnia_detail.png)
 > Get lists of all products:
 ```
 http://localhost:8000/products/product-list/
